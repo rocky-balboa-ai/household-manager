@@ -6,6 +6,10 @@ import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FrozenMealsModule } from './frozen-meals/frozen-meals.module';
+import { ShoppingModule } from './shopping/shopping.module';
+import { KidsModule } from './kids/kids.module';
+import { DayOffModule } from './day-off/day-off.module';
+import { FredScheduleModule } from './fred-schedule/fred-schedule.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { FrozenMealsModule } from './frozen-meals/frozen-meals.module';
     TasksModule,
     InventoryModule,
     FrozenMealsModule,
+    ShoppingModule,
+    KidsModule,
+    DayOffModule,
+    FredScheduleModule,
   ],
 })
 export class AppModule {}
