@@ -10,6 +10,7 @@ import { ShoppingModule } from './shopping/shopping.module';
 import { KidsModule } from './kids/kids.module';
 import { DayOffModule } from './day-off/day-off.module';
 import { FredScheduleModule } from './fred-schedule/fred-schedule.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FredScheduleModule } from './fred-schedule/fred-schedule.module';
     KidsModule,
     DayOffModule,
     FredScheduleModule,
+    WebsocketModule,
   ],
 })
 export class AppModule {}
