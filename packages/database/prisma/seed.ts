@@ -41,6 +41,7 @@ async function main() {
     data: {
       name: 'Elsy',
       email: 'elsy@elsy.com',
+      password: hashedPassword,
       role: 'MANAGER',
       language: 'en',
     },
@@ -49,6 +50,8 @@ async function main() {
   const saleem = await prisma.user.create({
     data: {
       name: 'Saleem',
+      email: 'saleem@haddad.com',
+      password: hashedPassword,
       role: 'DRIVER',
       language: 'ur',
       pin: hashedPin,
@@ -59,6 +62,8 @@ async function main() {
   const karen = await prisma.user.create({
     data: {
       name: 'Karen',
+      email: 'karen@haddad.com',
+      password: hashedPassword,
       role: 'NANNY',
       language: 'en',
       altLanguage: 'tl',
@@ -70,6 +75,8 @@ async function main() {
   const wincate = await prisma.user.create({
     data: {
       name: 'Wincate',
+      email: 'wincate@haddad.com',
+      password: hashedPassword,
       role: 'NANNY',
       language: 'en',
       altLanguage: 'sw',
@@ -81,6 +88,8 @@ async function main() {
   const ada = await prisma.user.create({
     data: {
       name: 'Ada',
+      email: 'ada@haddad.com',
+      password: hashedPassword,
       role: 'MAID',
       language: 'am',
       pin: hashedPin,
@@ -91,6 +100,8 @@ async function main() {
   const bella = await prisma.user.create({
     data: {
       name: 'Bella',
+      email: 'bella@haddad.com',
+      password: hashedPassword,
       role: 'MAID',
       language: 'am',
       pin: hashedPin,
