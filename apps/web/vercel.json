@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter web build",
-  "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "echo 'Install handled by buildCommand'"
+  "installCommand": "cd ../.. && npm i -g pnpm && pnpm install",
+  "buildCommand": "cd ../.. && pnpm --filter web build"
 }

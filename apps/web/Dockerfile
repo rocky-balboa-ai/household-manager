@@ -1,0 +1,41 @@
+FROM node:22-alpine AS base
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+WORKDIR /app
+
+# Copy root package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/database/package.json ./packages/database/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source files
+COPY packages/database ./packages/database
+COPY apps/web ./apps/web
+
+# Generate Prisma client (needed for types)
+RUN pnpm db:generate
+
+# Build the frontend
+ENV NEXT_PUBLIC_API_URL=https://api.household.mycyborg.ai
+RUN pnpm --filter web build
+
+# Production stage
+FROM node:22-alpine AS production
+
+WORKDIR /app
+
+# Copy standalone build
+COPY --from=base /app/apps/web/.next/standalone ./
+COPY --from=base /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=base /app/apps/web/public ./apps/web/public
+
+ENV NODE_ENV=production
+ENV PORT=3000
+EXPOSE 3000
+
+CMD ["node", "apps/web/server.js"]
