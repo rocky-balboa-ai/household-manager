@@ -111,12 +111,13 @@ model FrozenMeal {
 }
 
 model ShoppingList {
-  id         String   @id @default(uuid())
-  type       String?
-  assignedTo String?
-  status     String   @default("active")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String    @id @default(uuid())
+  type        String?
+  assignedTo  String?
+  status      String    @default("active")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   assignedUser User?          @relation("ShoppingListAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)

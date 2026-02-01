@@ -26,7 +26,9 @@ export class KidsService {
     if (dto.frozenMealId) {
       await this.db.frozenMeal.update({ where: { id: dto.frozenMealId }, data: { quantity: { decrement: 1 } } });
     }
-    return this.db.mealLog.create({ data: { kidId, ...dto, loggedBy } });
+    const portionsMap: Record<string, number> = { all: 1, most: 0.75, half: 0.5, little: 0.25, none: 0 };
+    const { portions, ...rest } = dto;
+    return this.db.mealLog.create({ data: { kidId, ...rest, portions: portions ? portionsMap[portions] : null, loggedBy } });
   }
 
   async addActivityLog(kidId: string, dto: CreateActivityLogDto, loggedBy: string) {
