@@ -1,42 +1,30 @@
 FROM node:22-alpine AS base
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
-
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-# Copy root package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/database/package.json ./packages/database/
+# Copy workspace files
+FROM base AS deps
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages ./packages
 COPY apps/web/package.json ./apps/web/
-
-# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source files
-COPY packages/database ./packages/database
+# Build
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages ./packages
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web ./apps/web
-
-# Generate Prisma client (needed for types)
-RUN pnpm db:generate
-
-# Build the frontend
-ARG NEXT_PUBLIC_API_URL=https://api-production-7bd2.up.railway.app
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN pnpm --filter web build
 
-# Production stage
-FROM node:22-alpine AS production
-
-WORKDIR /app
-
-# Copy standalone build
-COPY --from=base /app/apps/web/.next/standalone ./
-COPY --from=base /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=base /app/apps/web/public ./apps/web/public
-
+# Run
+FROM base AS runner
 ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE 3000
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
+EXPOSE 3000
+ENV PORT=3000
 CMD ["node", "apps/web/server.js"]
