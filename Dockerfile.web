@@ -21,7 +21,7 @@ COPY apps/web ./apps/web
 RUN pnpm db:generate
 
 # Build the frontend
-ARG NEXT_PUBLIC_API_URL=https://api.household.mycyborg.ai
+ARG NEXT_PUBLIC_API_URL=https://api-production-d476.up.railway.app
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN pnpm --filter web build
 
