@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
   images: {
@@ -9,14 +10,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Fix for Vercel monorepo - set root for file tracing
-  outputFileTracingRoot: process.cwd(),
-  experimental: {
-    // Ensure proper output for Vercel
-    outputFileTracingIncludes: {
-      '/*': ['./node_modules/**/*'],
-    },
-  },
+  // Fix for Vercel monorepo - set root to monorepo root
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 export default nextConfig;
