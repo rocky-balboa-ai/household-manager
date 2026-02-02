@@ -4,18 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, CheckSquare, Package, Baby, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const navItems = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { href: '/inventory', icon: Package, label: 'Inventory' },
-  { href: '/kids', icon: Baby, label: 'Kids', roles: ['ADMIN', 'MANAGER', 'NANNY'] },
-  { href: '/profile', icon: User, label: 'Profile' },
+  { href: '/', icon: Home, labelKey: 'nav.home' },
+  { href: '/tasks', icon: CheckSquare, labelKey: 'nav.tasks' },
+  { href: '/inventory', icon: Package, labelKey: 'nav.inventory' },
+  { href: '/kids', icon: Baby, labelKey: 'nav.kids', roles: ['ADMIN', 'MANAGER', 'NANNY'] },
+  { href: '/profile', icon: User, labelKey: 'nav.profile' },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
+  const { t } = useTranslation();
 
   const visibleItems = navItems.filter(
     (item) => !item.roles || (user && item.roles.includes(user.role))
@@ -35,7 +37,7 @@ export function BottomNav() {
               }`}
             >
               <item.icon className="w-6 h-6" />
-              <span className="text-xs mt-1">{item.label}</span>
+              <span className="text-xs mt-1">{t(item.labelKey)}</span>
             </Link>
           );
         })}

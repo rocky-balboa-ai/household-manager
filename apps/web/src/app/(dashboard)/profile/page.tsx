@@ -6,6 +6,7 @@ import { Header } from '@/components/navigation/header';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth';
 import { api } from '@/lib/api';
+import { useTranslation } from '@/hooks/useTranslation';
 import { User, Globe, LogOut, Calendar, Moon, Sun } from 'lucide-react';
 
 const languages: Record<string, string> = {
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const setLanguage = useAuthStore((s) => s.setLanguage);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleLanguageChange = async (language: string) => {
     if (!user) return;
@@ -47,7 +49,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Header title="Profile" />
+      <Header title={t('profile.title')} />
 
       <div className="space-y-6 pt-2">
         <div className="bg-white rounded-xl p-6 shadow-sm text-center">
@@ -64,7 +66,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <Globe className="w-5 h-5 text-gray-400" />
-            <h3 className="font-semibold">Language</h3>
+            <h3 className="font-semibold">{t('profile.language')}</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -91,13 +93,13 @@ export default function ProfilePage() {
             className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
           >
             <Calendar className="w-5 h-5 text-gray-400" />
-            <span>Request Day Off</span>
+            <span>{t('dayOff.request')}</span>
           </button>
         </div>
 
         <Button variant="danger" className="w-full" onClick={handleLogout}>
           <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
+          {t('profile.logout')}
         </Button>
       </div>
     </>
