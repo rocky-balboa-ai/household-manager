@@ -9,9 +9,10 @@ export default function RootPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
-    // The dashboard layout handles redirect if not authenticated
-    // If authenticated, this page won't be shown (dashboard takes over)
-    if (!isAuthenticated) {
+    if (isAuthenticated) {
+      // Redirect to dashboard when authenticated
+      router.replace('/tasks');
+    } else {
       router.replace('/login');
     }
   }, [isAuthenticated, router]);
