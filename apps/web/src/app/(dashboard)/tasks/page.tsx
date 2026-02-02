@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/navigation/header';
 import { TaskCard } from '@/components/tasks/task-card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
+import { socketClient } from '@/lib/socket';
 import { Plus, Filter } from 'lucide-react';
 
 export default function TasksPage() {
@@ -16,11 +17,7 @@ export default function TasksPage() {
   const user = useAuthStore((s) => s.user);
   const isManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const data = await api.getTasks();
       setTasks(data);
@@ -29,7 +26,26 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTasks();
+
+    // Listen for real-time task updates
+    const handleTaskCreated = () => loadTasks();
+    const handleTaskUpdated = () => loadTasks();
+    const handleTaskCompleted = () => loadTasks();
+
+    socketClient.on('task:created', handleTaskCreated);
+    socketClient.on('task:updated', handleTaskUpdated);
+    socketClient.on('task:completed', handleTaskCompleted);
+
+    return () => {
+      socketClient.off('task:created', handleTaskCreated);
+      socketClient.off('task:updated', handleTaskUpdated);
+      socketClient.off('task:completed', handleTaskCompleted);
+    };
+  }, [loadTasks]);
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     try {

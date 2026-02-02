@@ -3,10 +3,14 @@ import { DatabaseService } from '../database/database.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, CompleteTaskDto } from './dto/update-task.dto';
 import { TaskStatus } from 'database';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly ws: WebsocketGateway,
+  ) {}
 
   async findAll(userId?: string, role?: string) {
     const where: any = {};
@@ -36,7 +40,7 @@ export class TasksService {
   }
 
   async create(dto: CreateTaskDto, createdById: string) {
-    return this.db.task.create({
+    const task = await this.db.task.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -48,6 +52,8 @@ export class TasksService {
       },
       include: { assignments: { include: { user: { select: { id: true, name: true, role: true } } } } },
     });
+    this.ws.emitTaskCreated(task);
+    return task;
   }
 
   async update(id: string, dto: UpdateTaskDto) {
@@ -58,7 +64,7 @@ export class TasksService {
       await this.db.taskAssignment.createMany({ data: dto.assigneeIds.map((userId) => ({ taskId: id, userId })) });
     }
     const { assigneeIds, status, ...updateData } = dto;
-    return this.db.task.update({
+    const updated = await this.db.task.update({
       where: { id },
       data: {
         ...updateData,
@@ -67,6 +73,8 @@ export class TasksService {
       },
       include: { assignments: { include: { user: { select: { id: true, name: true, role: true } } } } },
     });
+    this.ws.emitTaskUpdated(updated);
+    return updated;
   }
 
   async complete(id: string, dto: CompleteTaskDto, userId: string) {
@@ -74,11 +82,13 @@ export class TasksService {
     if (!task) throw new NotFoundException('Task not found');
     const isAssigned = task.assignments.some((a) => a.userId === userId);
     if (!isAssigned) throw new ForbiddenException('You are not assigned to this task');
-    return this.db.task.update({
+    const completed = await this.db.task.update({
       where: { id },
       data: { status: TaskStatus.COMPLETED, completedAt: new Date(), photoProof: dto.photoProof },
       include: { assignments: { include: { user: { select: { id: true, name: true, role: true } } } } },
     });
+    this.ws.emitTaskCompleted(completed);
+    return completed;
   }
 
   async delete(id: string) {

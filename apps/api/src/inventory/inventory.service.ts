@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateInventoryDto, UpdateInventoryDto, AdjustInventoryDto } from './dto/create-inventory.dto';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class InventoryService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly ws: WebsocketGateway,
+  ) {}
 
   async findAll(category?: string) {
     return this.db.inventoryItem.findMany({
@@ -20,18 +24,24 @@ export class InventoryService {
   }
 
   async create(dto: CreateInventoryDto) {
-    return this.db.inventoryItem.create({ data: { ...dto, quantity: dto.quantity || 0 } });
+    const item = await this.db.inventoryItem.create({ data: { ...dto, quantity: dto.quantity || 0 } });
+    this.ws.emitInventoryUpdated(item);
+    return item;
   }
 
   async update(id: string, dto: UpdateInventoryDto) {
     await this.findOne(id);
-    return this.db.inventoryItem.update({ where: { id }, data: dto });
+    const item = await this.db.inventoryItem.update({ where: { id }, data: dto });
+    this.ws.emitInventoryUpdated(item);
+    return item;
   }
 
   async adjust(id: string, dto: AdjustInventoryDto) {
     const item = await this.findOne(id);
     const newQuantity = Math.max(0, item.quantity + dto.amount);
-    return this.db.inventoryItem.update({ where: { id }, data: { quantity: newQuantity } });
+    const updated = await this.db.inventoryItem.update({ where: { id }, data: { quantity: newQuantity } });
+    this.ws.emitInventoryUpdated(updated);
+    return updated;
   }
 
   async delete(id: string) {

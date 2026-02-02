@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Header } from '@/components/navigation/header';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import { socketClient } from '@/lib/socket';
 import { Plus, Minus, Package, AlertTriangle } from 'lucide-react';
 
 const categories = [
@@ -18,11 +19,7 @@ export default function InventoryPage() {
   const [category, setCategory] = useState('pantry');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadItems();
-  }, [category]);
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getInventory(category);
@@ -32,7 +29,24 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category]);
+
+  useEffect(() => {
+    loadItems();
+
+    // Listen for real-time inventory updates
+    const handleInventoryUpdated = (updatedItem: any) => {
+      if (updatedItem.category === category) {
+        loadItems();
+      }
+    };
+
+    socketClient.on('inventory:updated', handleInventoryUpdated);
+
+    return () => {
+      socketClient.off('inventory:updated', handleInventoryUpdated);
+    };
+  }, [category, loadItems]);
 
   const handleAdjust = async (id: string, amount: number) => {
     try {
