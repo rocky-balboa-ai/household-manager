@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm i -g pnpm && pnpm install",
-  "buildCommand": "pnpm db:generate && pnpm --filter web build"
+  "installCommand": "cd ../.. && npm i -g pnpm && pnpm install",
+  "buildCommand": "cd ../.. && pnpm db:generate && pnpm --filter web build",
+  "rootDirectory": "apps/web"
 }
