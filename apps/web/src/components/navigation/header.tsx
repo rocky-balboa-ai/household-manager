@@ -12,7 +12,7 @@ export function Header({ title }: HeaderProps) {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10">
+    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10 md:hidden">
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-gray-900">{title}</h1>

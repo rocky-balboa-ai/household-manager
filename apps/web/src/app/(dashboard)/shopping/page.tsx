@@ -43,22 +43,52 @@ export default function ShoppingPage() {
 
   const handleAddItem = async () => {
     if (!newItem.trim() || !activeList) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticItem = { id: tempId, name: newItem.trim(), purchased: false, quantity: 1 };
+
+    // Optimistic update - add item immediately
+    const previousLists = [...lists];
+    setLists(lists.map(list =>
+      list.id === activeList.id
+        ? { ...list, items: [...(list.items || []), optimisticItem] }
+        : list
+    ));
+    setNewItem('');
+
     try {
-      await api.addShoppingItem(activeList.id, { name: newItem });
-      setNewItem('');
+      await api.addShoppingItem(activeList.id, { name: optimisticItem.name });
+      // Reload to get the real ID from server
       loadLists();
     } catch (err) {
       console.error(err);
+      // Revert on error
+      setLists(previousLists);
     }
   };
 
   const handleToggleItem = async (itemId: string, purchased: boolean) => {
     if (!activeList) return;
+
+    // Optimistic update - toggle immediately
+    const previousLists = [...lists];
+    setLists(lists.map(list =>
+      list.id === activeList.id
+        ? {
+            ...list,
+            items: list.items?.map((item: any) =>
+              item.id === itemId ? { ...item, purchased: !purchased } : item
+            ),
+          }
+        : list
+    ));
+
     try {
       await api.updateShoppingItem(activeList.id, itemId, { purchased: !purchased });
-      loadLists();
     } catch (err) {
       console.error(err);
+      // Revert on error
+      setLists(previousLists);
     }
   };
 

@@ -59,18 +59,18 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {visibleActions.map((action) => (
             <Link
               key={action.href}
               href={action.href}
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mb-3`}>
-                <action.icon className="w-6 h-6" />
+              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl ${action.color} flex items-center justify-center mb-3`}>
+                <action.icon className="w-6 h-6 md:w-7 md:h-7" />
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-900">{action.label}</span>
+                <span className="font-medium text-gray-900 md:text-lg">{action.label}</span>
                 {action.count !== undefined && (
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${action.alert ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
                     {action.count}

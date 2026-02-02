@@ -1,10 +1,73 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, CreateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly db: DatabaseService) {}
+
+  async create(dto: CreateUserDto) {
+    const existing = await this.db.user.findUnique({ where: { email: dto.email } });
+    if (existing) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const user = await this.db.user.create({
+      data: {
+        name: dto.name,
+        email: dto.email,
+        password: hashedPassword,
+        role: dto.role,
+        phone: dto.phone,
+        language: dto.language || 'en',
+        altLanguage: dto.altLanguage,
+      },
+      select: { id: true, name: true, email: true, phone: true, role: true, language: true, altLanguage: true, createdAt: true },
+    });
+    return user;
+  }
+
+  async delete(id: string) {
+    const user = await this.db.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Cannot delete admin users');
+    }
+    await this.db.user.delete({ where: { id } });
+    return { success: true };
+  }
+
+  async resetPin(id: string) {
+    const user = await this.db.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.db.user.update({
+      where: { id },
+      data: { pin: null, pinSetAt: null },
+    });
+    return { success: true };
+  }
+
+  async resetPassword(id: string, newPassword: string) {
+    if (newPassword.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters');
+    }
+    const user = await this.db.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.db.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+    return { success: true };
+  }
 
   async findAll() {
     return this.db.user.findMany({

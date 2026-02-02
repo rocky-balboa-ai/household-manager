@@ -50,15 +50,25 @@ export default function TasksPage() {
   }, [loadTasks]);
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
+    // Optimistic update - update local state immediately
+    const previousTasks = [...tasks];
+    setTasks(tasks.map(task =>
+      task.id === taskId
+        ? { ...task, status: newStatus, completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : null }
+        : task
+    ));
+
     try {
       if (newStatus === 'COMPLETED') {
         await api.completeTask(taskId);
       } else {
         await api.updateTask(taskId, { status: newStatus });
       }
-      loadTasks();
+      // Server confirmed, no need to reload
     } catch (err) {
       console.error(err);
+      // Revert to previous state on error
+      setTasks(previousTasks);
     }
   };
 
@@ -108,7 +118,7 @@ export default function TasksPage() {
         ) : filteredTasks.length === 0 ? (
           <div className="text-center py-8 text-gray-500">{t('tasks.noTasks')}</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
             {filteredTasks.map((task) => (
               <TaskCard
                 key={task.id}

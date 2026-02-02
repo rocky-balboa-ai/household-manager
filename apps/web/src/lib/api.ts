@@ -198,6 +198,45 @@ class ApiClient {
   setFredSchedule(date: string, location: string) {
     return this.request<any>('/fred-schedule', { method: 'POST', body: JSON.stringify({ date, location }) });
   }
+
+  // Meal Plans
+  getMealPlans(startDate: string, endDate: string) {
+    return this.request<any[]>(`/meal-plans?start=${startDate}&end=${endDate}`);
+  }
+
+  getMealPlansByDate(date: string) {
+    return this.request<any[]>(`/meal-plans/date/${date}`);
+  }
+
+  saveMealPlan(data: { date: string; mealType: string; description?: string; recipe?: string; notes?: string }) {
+    return this.request<any>('/meal-plans', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  deleteMealPlan(id: string) {
+    return this.request<any>(`/meal-plans/${id}`, { method: 'DELETE' });
+  }
+
+  // Config
+  getConfig(type?: string) {
+    return this.request<any[]>(`/config${type ? `?type=${type}` : ''}`);
+  }
+
+  // Users Admin
+  createUser(data: any) {
+    return this.request<any>('/users', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  deleteUser(id: string) {
+    return this.request<any>(`/users/${id}`, { method: 'DELETE' });
+  }
+
+  resetUserPin(id: string) {
+    return this.request<any>(`/users/${id}/reset-pin`, { method: 'POST' });
+  }
+
+  resetUserPassword(id: string, password: string) {
+    return this.request<any>(`/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) });
+  }
 }
 
 export const api = new ApiClient();

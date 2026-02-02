@@ -22,6 +22,71 @@ async function main() {
   await prisma.frozenMeal.deleteMany();
   await prisma.kid.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.appConfig.deleteMany();
+
+  // Create App Configurations
+  const configs = [
+    // Task categories
+    { type: 'task_category', value: 'cleaning', label: 'Cleaning', sortOrder: 0 },
+    { type: 'task_category', value: 'cooking', label: 'Cooking', sortOrder: 1 },
+    { type: 'task_category', value: 'laundry', label: 'Laundry', sortOrder: 2 },
+    { type: 'task_category', value: 'kids', label: 'Kids', sortOrder: 3 },
+    { type: 'task_category', value: 'shopping', label: 'Shopping', sortOrder: 4 },
+    { type: 'task_category', value: 'other', label: 'Other', sortOrder: 5 },
+    // Inventory categories
+    { type: 'inventory_category', value: 'pantry', label: 'Pantry', sortOrder: 0 },
+    { type: 'inventory_category', value: 'fridge', label: 'Fridge', sortOrder: 1 },
+    { type: 'inventory_category', value: 'freezer', label: 'Freezer', sortOrder: 2 },
+    { type: 'inventory_category', value: 'shisha', label: 'Shisha', sortOrder: 3 },
+    // Units
+    { type: 'unit', value: 'kg', label: 'kg', sortOrder: 0 },
+    { type: 'unit', value: 'g', label: 'grams', sortOrder: 1 },
+    { type: 'unit', value: 'l', label: 'liters', sortOrder: 2 },
+    { type: 'unit', value: 'ml', label: 'ml', sortOrder: 3 },
+    { type: 'unit', value: 'packs', label: 'packs', sortOrder: 4 },
+    { type: 'unit', value: 'bottles', label: 'bottles', sortOrder: 5 },
+    { type: 'unit', value: 'cans', label: 'cans', sortOrder: 6 },
+    { type: 'unit', value: 'boxes', label: 'boxes', sortOrder: 7 },
+    { type: 'unit', value: 'pieces', label: 'pieces', sortOrder: 8 },
+    { type: 'unit', value: 'bags', label: 'bags', sortOrder: 9 },
+    { type: 'unit', value: 'loaves', label: 'loaves', sortOrder: 10 },
+    // Activity types
+    { type: 'activity_type', value: 'play', label: 'Play', sortOrder: 0 },
+    { type: 'activity_type', value: 'learning', label: 'Learning', sortOrder: 1 },
+    { type: 'activity_type', value: 'outdoor', label: 'Outdoor', sortOrder: 2 },
+    { type: 'activity_type', value: 'screen', label: 'Screen Time', sortOrder: 3 },
+    { type: 'activity_type', value: 'nap', label: 'Nap', sortOrder: 4 },
+    { type: 'activity_type', value: 'other', label: 'Other', sortOrder: 5 },
+    // Meal types
+    { type: 'meal_type', value: 'breakfast', label: 'Breakfast', sortOrder: 0 },
+    { type: 'meal_type', value: 'lunch', label: 'Lunch', sortOrder: 1 },
+    { type: 'meal_type', value: 'dinner', label: 'Dinner', sortOrder: 2 },
+    { type: 'meal_type', value: 'snack', label: 'Snack', sortOrder: 3 },
+    // Shopping list types
+    { type: 'shopping_list_type', value: 'grocery', label: 'Grocery', sortOrder: 0 },
+    { type: 'shopping_list_type', value: 'pharmacy', label: 'Pharmacy', sortOrder: 1 },
+    // Health log types
+    { type: 'health_log_type', value: 'poop', label: 'Poop', sortOrder: 0 },
+    { type: 'health_log_type', value: 'pee', label: 'Pee', sortOrder: 1 },
+    // Food sources
+    { type: 'food_source', value: 'fresh', label: 'Fresh', sortOrder: 0 },
+    { type: 'food_source', value: 'frozen', label: 'Frozen', sortOrder: 1 },
+    // Portion options
+    { type: 'portion_option', value: 'all', label: 'All (100%)', sortOrder: 0 },
+    { type: 'portion_option', value: 'most', label: 'Most (75%)', sortOrder: 1 },
+    { type: 'portion_option', value: 'half', label: 'Half (50%)', sortOrder: 2 },
+    { type: 'portion_option', value: 'little', label: 'Little (25%)', sortOrder: 3 },
+    { type: 'portion_option', value: 'none', label: 'None (0%)', sortOrder: 4 },
+    // Day off types
+    { type: 'day_off_type', value: 'full', label: 'Full Day', sortOrder: 0 },
+    { type: 'day_off_type', value: 'half_am', label: 'Half Day (AM)', sortOrder: 1 },
+    { type: 'day_off_type', value: 'half_pm', label: 'Half Day (PM)', sortOrder: 2 },
+  ];
+
+  for (const config of configs) {
+    await prisma.appConfig.create({ data: config });
+  }
+  console.log('App configurations created');
 
   // Create Users
   const hashedPassword = await bcrypt.hash('password123', 10);
@@ -42,7 +107,7 @@ async function main() {
       name: 'Elsy',
       email: 'elsy@elsy.com',
       password: hashedPassword,
-      role: 'MANAGER',
+      role: 'ADMIN',
       language: 'en',
     },
   });

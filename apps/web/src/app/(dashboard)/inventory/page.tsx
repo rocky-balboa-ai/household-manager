@@ -49,11 +49,21 @@ export default function InventoryPage() {
   }, [category, loadItems]);
 
   const handleAdjust = async (id: string, amount: number) => {
+    // Optimistic update - update local state immediately
+    const previousItems = [...items];
+    setItems(items.map(item =>
+      item.id === id
+        ? { ...item, quantity: Math.max(0, item.quantity + amount) }
+        : item
+    ));
+
     try {
       await api.adjustInventory(id, amount);
-      loadItems();
+      // Server confirmed, no need to reload - our optimistic update was correct
     } catch (err) {
       console.error(err);
+      // Revert to previous state on error
+      setItems(previousItems);
     }
   };
 
@@ -84,7 +94,7 @@ export default function InventoryPage() {
         ) : items.length === 0 ? (
           <div className="text-center py-8 text-gray-500">No items in {category}</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
             {items.map((item) => {
               const isLow = item.lowThreshold && item.quantity <= item.lowThreshold;
               return (

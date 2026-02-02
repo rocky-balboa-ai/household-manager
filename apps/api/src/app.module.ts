@@ -11,6 +11,8 @@ import { KidsModule } from './kids/kids.module';
 import { DayOffModule } from './day-off/day-off.module';
 import { FredScheduleModule } from './fred-schedule/fred-schedule.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { AppConfigModule } from './config/config.module';
+import { MealPlansModule } from './meal-plans/meal-plans.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { WebsocketModule } from './websocket/websocket.module';
     DayOffModule,
     FredScheduleModule,
     WebsocketModule,
+    AppConfigModule,
+    MealPlansModule,
   ],
 })
 export class AppModule {}

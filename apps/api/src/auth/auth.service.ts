@@ -27,7 +27,7 @@ export class AuthService {
 
   async requestPin(email: string) {
     const user = await this.db.user.findUnique({ where: { email } });
-    if (!user || user.role !== 'MANAGER') {
+    if (!user || (user.role !== 'MANAGER' && user.role !== 'ADMIN')) {
       throw new BadRequestException('Invalid email');
     }
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
