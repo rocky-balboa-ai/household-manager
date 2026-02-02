@@ -9,7 +9,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  outputFileTracing: false,
+  // Fix for Vercel monorepo - set root for file tracing
+  outputFileTracingRoot: process.cwd(),
+  experimental: {
+    // Ensure proper output for Vercel
+    outputFileTracingIncludes: {
+      '/*': ['./node_modules/**/*'],
+    },
+  },
 };
 
 export default nextConfig;
