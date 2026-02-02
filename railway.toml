@@ -1,2 +1,9 @@
-# This file is here for reference - each service should have its own config
-# See apps/web/railway.toml and apps/api/railway.toml
+# Monorepo config - services should set Root Directory to / and use these commands:
+#
+# WEB SERVICE:
+#   Build: pnpm install --frozen-lockfile && pnpm --filter web build
+#   Start: pnpm --filter web start
+#
+# API SERVICE:
+#   Build: pnpm install --frozen-lockfile && pnpm --filter api build
+#   Start: pnpm --filter api start:prod

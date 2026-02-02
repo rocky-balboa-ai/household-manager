@@ -1,6 +1,0 @@
-[build]
-builder = "nixpacks"
-buildCommand = "cd ../.. && pnpm install && pnpm --filter api build && pnpm --filter api prisma:generate"
-
-[deploy]
-startCommand = "cd ../.. && pnpm --filter api start:prod"
