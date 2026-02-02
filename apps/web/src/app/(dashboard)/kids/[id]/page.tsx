@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/navigation/header';
 import { Button } from '@/components/ui/button';
+import { PhotoUpload } from '@/components/ui/photo-upload';
 import { api } from '@/lib/api';
 import { ArrowLeft, Heart, Utensils, Activity, Plus } from 'lucide-react';
 import { format } from 'date-fns';
@@ -46,6 +47,16 @@ export default function KidDetailPage() {
   const handleActivityLog = async (activity: string, category: string, notes: string) => {
     try {
       await api.addActivityLog(params.id as string, { activity, category, notes: notes || undefined });
+      loadKid();
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleMealLog = async (data: any) => {
+    try {
+      await api.addMealLog(params.id as string, data);
       loadKid();
       setShowForm(false);
     } catch (err) {
@@ -99,6 +110,10 @@ export default function KidDetailPage() {
           <HealthLogForm onSubmit={handleHealthLog} onCancel={() => setShowForm(false)} />
         )}
 
+        {showForm && tab === 'meals' && (
+          <MealLogForm onSubmit={handleMealLog} onCancel={() => setShowForm(false)} />
+        )}
+
         {showForm && tab === 'activities' && (
           <ActivityLogForm onSubmit={handleActivityLog} onCancel={() => setShowForm(false)} />
         )}
@@ -132,6 +147,9 @@ export default function KidDetailPage() {
               <p className="text-sm text-gray-500">
                 {log.foodSource === 'frozen' ? 'Frozen meal' : 'Fresh'} • {log.portions || 'Unknown'} eaten
               </p>
+              {log.photo && !log.photo.includes('placeholder') && (
+                <img src={log.photo} alt="Meal" className="mt-3 rounded-lg max-h-32 object-cover" />
+              )}
               <p className="text-xs text-gray-400 mt-2">
                 {format(new Date(log.createdAt), 'MMM d, h:mm a')}
               </p>
@@ -226,6 +244,121 @@ function ActivityLogForm({ onSubmit, onCancel }: { onSubmit: (activity: string, 
       <div className="flex gap-2">
         <Button variant="ghost" onClick={onCancel} className="flex-1">Cancel</Button>
         <Button onClick={() => onSubmit(activity, category, notes)} className="flex-1" disabled={!activity}>Save</Button>
+      </div>
+    </div>
+  );
+}
+
+function MealLogForm({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCancel: () => void }) {
+  const [mealType, setMealType] = useState('breakfast');
+  const [foodSource, setFoodSource] = useState('fresh');
+  const [foodName, setFoodName] = useState('');
+  const [rating, setRating] = useState(3);
+  const [portions, setPortions] = useState('all');
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+  const portionOptions = ['all', 'most', 'half', 'little', 'none'];
+  const ratingEmojis = ['😫', '😕', '😐', '🙂', '😋'];
+
+  const handleSubmit = () => {
+    onSubmit({
+      mealType,
+      foodSource,
+      foodName,
+      rating,
+      portions,
+      photo: photo || 'data:image/png;base64,placeholder',
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type</label>
+        <div className="flex gap-2 flex-wrap">
+          {mealTypes.map((t) => (
+            <button
+              key={t}
+              onClick={() => setMealType(t)}
+              className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                mealType === t ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Food Source</label>
+        <div className="flex gap-2">
+          {['fresh', 'frozen'].map((s) => (
+            <button
+              key={s}
+              onClick={() => setFoodSource(s)}
+              className={`flex-1 py-2 rounded-lg font-medium capitalize ${
+                foodSource === s ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <input
+        value={foodName}
+        onChange={(e) => setFoodName(e.target.value)}
+        placeholder="What did they eat?"
+        className="w-full px-4 py-3 rounded-lg border border-gray-300"
+      />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">How well did they eat?</label>
+        <div className="flex justify-between">
+          {ratingEmojis.map((emoji, i) => (
+            <button
+              key={i}
+              onClick={() => setRating(i + 1)}
+              className={`text-3xl p-2 rounded-lg ${
+                rating === i + 1 ? 'bg-primary-100 scale-110' : 'opacity-50'
+              }`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Portions eaten</label>
+        <div className="flex gap-2 flex-wrap">
+          {portionOptions.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPortions(p)}
+              className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                portions === p ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <PhotoUpload
+        value={photo || undefined}
+        onChange={(value) => setPhoto(value)}
+        label="Photo of plate"
+        required
+      />
+
+      <div className="flex gap-2">
+        <Button variant="ghost" onClick={onCancel} className="flex-1">Cancel</Button>
+        <Button onClick={handleSubmit} className="flex-1" disabled={!foodName}>Save</Button>
       </div>
     </div>
   );

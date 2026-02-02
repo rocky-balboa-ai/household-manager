@@ -4,14 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Header } from '@/components/navigation/header';
 import { Button } from '@/components/ui/button';
+import { PhotoUpload } from '@/components/ui/photo-upload';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
-import { ArrowLeft, Clock, User, CheckCircle, Camera } from 'lucide-react';
+import { ArrowLeft, Clock, User, CheckCircle, Camera, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function TaskDetailPage() {
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [photoProof, setPhotoProof] = useState<string | null>(null);
+  const [completing, setCompleting] = useState(false);
   const router = useRouter();
   const params = useParams();
   const user = useAuthStore((s) => s.user);
@@ -35,11 +39,15 @@ export default function TaskDetailPage() {
   };
 
   const handleComplete = async () => {
+    setCompleting(true);
     try {
-      await api.completeTask(task.id);
+      await api.completeTask(task.id, photoProof || undefined);
+      setShowCompleteModal(false);
       loadTask();
     } catch (err) {
       console.error(err);
+    } finally {
+      setCompleting(false);
     }
   };
 
@@ -115,7 +123,7 @@ export default function TaskDetailPage() {
 
         <div className="space-y-3">
           {task.status !== 'COMPLETED' && isAssigned && (
-            <Button className="w-full" onClick={handleComplete}>
+            <Button className="w-full" onClick={() => setShowCompleteModal(true)}>
               <CheckCircle className="w-4 h-4 mr-2" />
               Mark Complete
             </Button>
@@ -128,6 +136,37 @@ export default function TaskDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Complete Task Modal */}
+      {showCompleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Complete Task</h2>
+              <button onClick={() => setShowCompleteModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-gray-600">Add a photo as proof of completion (optional).</p>
+
+            <PhotoUpload
+              value={photoProof || undefined}
+              onChange={(value) => setPhotoProof(value)}
+              label="Photo Proof"
+            />
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setShowCompleteModal(false)}>
+                Cancel
+              </Button>
+              <Button className="flex-1" onClick={handleComplete} disabled={completing}>
+                {completing ? 'Completing...' : 'Complete Task'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
