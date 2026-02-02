@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
   },
   // Fix for Vercel monorepo - set root to monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  // Skip problematic file tracing
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/@swc/core-linux-x64-gnu',
+        'node_modules/@swc/core-linux-x64-musl',
+        'node_modules/@esbuild/linux-x64',
+      ],
+    },
+  },
 };
 
 export default nextConfig;
