@@ -169,6 +169,10 @@ class ApiClient {
     return this.request<any>(`/kids/${id}`);
   }
 
+  getAllKidSchedules() {
+    return this.request<any[]>('/kids/schedules/all');
+  }
+
   addHealthLog(kidId: string, data: any) {
     return this.request<any>(`/kids/${kidId}/health-log`, { method: 'POST', body: JSON.stringify(data) });
   }

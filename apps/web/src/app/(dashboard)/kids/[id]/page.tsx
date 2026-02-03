@@ -303,7 +303,7 @@ function MealLogForm({ onSubmit, onCancel }: { onSubmit: (data: any) => void; on
       foodName,
       rating,
       portions,
-      photo: photo || 'data:image/png;base64,placeholder',
+      photo: photo || undefined,
     });
   };
 
@@ -387,8 +387,7 @@ function MealLogForm({ onSubmit, onCancel }: { onSubmit: (data: any) => void; on
       <PhotoUpload
         value={photo || undefined}
         onChange={(value) => setPhoto(value)}
-        label="Photo of plate"
-        required
+        label="Photo of plate (optional)"
       />
 
       <div className="flex gap-2">

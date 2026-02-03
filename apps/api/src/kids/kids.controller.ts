@@ -15,6 +15,9 @@ export class KidsController {
   @Get() @ApiOperation({ summary: 'Get all kids' })
   findAll() { return this.service.findAll(); }
 
+  @Get('schedules/all') @ApiOperation({ summary: 'Get all schedules across all kids' })
+  getAllSchedules() { return this.service.getAllSchedules(); }
+
   @Get(':id') @ApiOperation({ summary: 'Get kid by ID' })
   findOne(@Param('id') id: string) { return this.service.findOne(id); }
 

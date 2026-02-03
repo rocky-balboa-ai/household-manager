@@ -12,7 +12,7 @@ export class CreateMealLogDto {
   @ApiProperty() @IsString() foodName: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() frozenMealId?: string;
   @ApiProperty({ minimum: 1, maximum: 5 }) @IsInt() @Min(1) @Max(5) rating: number;
-  @ApiProperty() @IsString() photo: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() photo?: string;
   @ApiPropertyOptional({ enum: ['all', 'most', 'half', 'little', 'none'] }) @IsOptional() @IsString() portions?: string;
 }
 
