@@ -1,9 +1,6 @@
-# Monorepo config - services should set Root Directory to / and use these commands:
-#
-# WEB SERVICE:
-#   Build: pnpm install --frozen-lockfile && pnpm --filter web build
-#   Start: pnpm --filter web start
-#
-# API SERVICE:
-#   Build: pnpm install --frozen-lockfile && pnpm --filter api build
-#   Start: pnpm --filter api start:prod
+[build]
+dockerfilePath = "apps/api/Dockerfile"
+
+# Force fresh build
+[build.args]
+CACHE_BUST = "2026-02-03-v1"
