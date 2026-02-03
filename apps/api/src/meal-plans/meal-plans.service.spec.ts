@@ -40,11 +40,13 @@ describe('MealPlansService', () => {
 
       const result = await service.getByDateRange('2024-01-01', '2024-01-31');
 
+      // Start date: start of day (00:00:00.000Z)
+      // End date: end of day (23:59:59.999Z) to include the full day
       expect(mockDb.mealPlan.findMany).toHaveBeenCalledWith({
         where: {
           date: {
-            gte: new Date('2024-01-01'),
-            lte: new Date('2024-01-31'),
+            gte: new Date('2024-01-01T00:00:00.000Z'),
+            lte: new Date('2024-01-31T23:59:59.999Z'),
           },
         },
         orderBy: [{ date: 'asc' }, { mealType: 'asc' }],
@@ -82,15 +84,17 @@ describe('MealPlansService', () => {
   describe('upsert', () => {
     it('creates or updates a meal plan for a date/mealType', async () => {
       const dto = { date: '2024-01-15', mealType: 'breakfast', description: 'New menu' };
-      const upserted = { id: 'upsert-id', ...dto, date: new Date(dto.date) };
+      // normalizeDate sets time to noon UTC (12:00:00) to avoid timezone issues
+      const normalizedDate = new Date('2024-01-15T12:00:00.000Z');
+      const upserted = { id: 'upsert-id', ...dto, date: normalizedDate };
       mockDb.mealPlan.upsert.mockResolvedValue(upserted);
 
       const result = await service.upsert(dto);
 
       expect(mockDb.mealPlan.upsert).toHaveBeenCalledWith({
-        where: { date_mealType: { date: new Date(dto.date), mealType: 'breakfast' } },
+        where: { date_mealType: { date: normalizedDate, mealType: 'breakfast' } },
         update: { description: 'New menu', recipe: undefined, notes: undefined },
-        create: expect.objectContaining({ mealType: 'breakfast', description: 'New menu' }),
+        create: expect.objectContaining({ mealType: 'breakfast', description: 'New menu', date: normalizedDate }),
       });
       expect(result.description).toBe('New menu');
     });
