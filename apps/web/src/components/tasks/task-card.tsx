@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Clock, User, CheckCircle, Circle, Play } from 'lucide-react';
-import { format } from 'date-fns';
+import { Clock, User, CheckCircle, Circle, Play, RefreshCw } from 'lucide-react';
+import { format, isPast, isToday, isTomorrow } from 'date-fns';
 
 interface TaskCardProps {
   task: {
@@ -12,6 +12,7 @@ interface TaskCardProps {
     category: string;
     status: string;
     dueDate?: string;
+    recurring?: string;
     assignments: { user: { id: string; name: string } }[];
   };
   onStatusChange?: (status: string) => void;
@@ -32,13 +33,41 @@ const statusIcons: Record<string, React.ReactNode> = {
   COMPLETED: <CheckCircle className="w-5 h-5 text-green-500" />,
 };
 
+const recurringLabels: Record<string, string> = {
+  daily: 'Daily',
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+};
+
+function formatDueDate(dueDate: string): { text: string; isOverdue: boolean; isUrgent: boolean } {
+  const date = new Date(dueDate);
+  const now = new Date();
+
+  if (isToday(date)) {
+    return { text: `Today, ${format(date, 'h:mm a')}`, isOverdue: isPast(date), isUrgent: true };
+  }
+
+  if (isTomorrow(date)) {
+    return { text: `Tomorrow, ${format(date, 'h:mm a')}`, isOverdue: false, isUrgent: true };
+  }
+
+  if (isPast(date)) {
+    return { text: format(date, 'MMM d, h:mm a'), isOverdue: true, isUrgent: false };
+  }
+
+  return { text: format(date, 'MMM d, h:mm a'), isOverdue: false, isUrgent: false };
+}
+
 export function TaskCard({ task, onStatusChange }: TaskCardProps) {
+  const dueInfo = task.dueDate ? formatDueDate(task.dueDate) : null;
+  const isOverdue = dueInfo?.isOverdue && task.status !== 'COMPLETED';
+
   return (
     <Link
       href={`/tasks/${task.id}`}
       className={`block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow ${
         task.status === 'COMPLETED' ? 'opacity-60' : ''
-      }`}
+      } ${isOverdue ? 'ring-2 ring-red-200' : ''}`}
     >
       <div className="flex items-start gap-3">
         <button
@@ -67,10 +96,21 @@ export function TaskCard({ task, onStatusChange }: TaskCardProps) {
               {task.category}
             </span>
 
-            {task.dueDate && (
-              <span className="flex items-center gap-1 text-xs text-gray-500">
+            {task.recurring && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                <RefreshCw className="w-3 h-3" />
+                {recurringLabels[task.recurring] || task.recurring}
+              </span>
+            )}
+
+            {dueInfo && (
+              <span className={`flex items-center gap-1 text-xs ${
+                isOverdue ? 'text-red-600 font-medium' : 
+                dueInfo.isUrgent ? 'text-amber-600 font-medium' : 
+                'text-gray-500'
+              }`}>
                 <Clock className="w-3 h-3" />
-                {format(new Date(task.dueDate), 'MMM d, h:mm a')}
+                {dueInfo.text}
               </span>
             )}
 

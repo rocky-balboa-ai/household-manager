@@ -156,20 +156,55 @@ export default function KidDetailPage() {
             </div>
           ))}
 
-          {tab === 'activities' && kid.activityLogs?.map((log: any) => (
-            <div key={log.id} className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
-                  {log.category}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {format(new Date(log.createdAt), 'MMM d, h:mm a')}
-                </span>
-              </div>
-              <p className="font-medium text-gray-900">{log.activity}</p>
-              {log.notes && <p className="text-sm text-gray-600">{log.notes}</p>}
-            </div>
-          ))}
+          {tab === 'activities' && (
+            <>
+              {kid.schedules?.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Scheduled Activities</h3>
+                  {kid.schedules.map((schedule: any) => {
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    return (
+                      <div key={schedule.id} className="bg-white rounded-xl p-4 shadow-sm mb-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                            {days[schedule.dayOfWeek]} @ {schedule.time}
+                          </span>
+                          {!schedule.active && (
+                            <span className="text-xs text-gray-400">Inactive</span>
+                          )}
+                        </div>
+                        <p className="font-medium text-gray-900">{schedule.activity}</p>
+                        {schedule.location && <p className="text-sm text-gray-500">{schedule.location}</p>}
+                        {schedule.notes && <p className="text-sm text-gray-600">{schedule.notes}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {kid.activityLogs?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Activity History</h3>
+                  {kid.activityLogs.map((log: any) => (
+                    <div key={log.id} className="bg-white rounded-xl p-4 shadow-sm mb-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                          {log.category}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(log.createdAt), 'MMM d, h:mm a')}
+                        </span>
+                      </div>
+                      <p className="font-medium text-gray-900">{log.activity}</p>
+                      {log.notes && <p className="text-sm text-gray-600">{log.notes}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(!kid.schedules || kid.schedules.length === 0) && (!kid.activityLogs || kid.activityLogs.length === 0) && (
+                <p className="text-center text-gray-500 py-8">No activities yet. Add one above!</p>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>

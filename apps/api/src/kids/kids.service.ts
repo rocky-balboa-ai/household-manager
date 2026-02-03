@@ -10,6 +10,14 @@ export class KidsService {
     return this.db.kid.findMany({ include: { healthLogs: { take: 5, orderBy: { createdAt: 'desc' } }, mealLogs: { take: 5, orderBy: { createdAt: 'desc' } }, schedules: { where: { active: true } } } });
   }
 
+  async getAllSchedules() {
+    return this.db.kidSchedule.findMany({
+      where: { active: true },
+      include: { kid: { select: { id: true, name: true } } },
+      orderBy: [{ dayOfWeek: 'asc' }, { time: 'asc' }],
+    });
+  }
+
   async findOne(id: string) {
     const kid = await this.db.kid.findUnique({ where: { id }, include: { healthLogs: { orderBy: { createdAt: 'desc' } }, mealLogs: { orderBy: { createdAt: 'desc' } }, activityLogs: { orderBy: { createdAt: 'desc' } }, schedules: true } });
     if (!kid) throw new NotFoundException('Kid not found');
