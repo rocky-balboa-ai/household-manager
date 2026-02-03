@@ -1,6 +1,6 @@
 FROM node:22-alpine AS base
-ARG CACHE_BUST=default
-RUN echo "Cache bust: ${CACHE_BUST}" && corepack enable && corepack prepare pnpm@latest --activate
+# Force rebuild: 2026-02-03-003
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy workspace files
