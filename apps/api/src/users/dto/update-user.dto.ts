@@ -27,3 +27,9 @@ export class CreateUserDto {
 export class ResetPasswordDto {
   @ApiProperty() @IsString() @MinLength(6) password: string;
 }
+
+export class SetPinDto {
+  @ApiProperty({ description: 'PIN must be 4-6 digits' })
+  @IsString()
+  pin: string;
+}

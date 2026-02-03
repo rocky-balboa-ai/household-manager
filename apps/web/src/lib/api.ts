@@ -246,6 +246,10 @@ class ApiClient {
     return this.request<any>(`/users/${id}/reset-pin`, { method: 'POST' });
   }
 
+  setUserPin(id: string, pin: string) {
+    return this.request<any>(`/users/${id}/set-pin`, { method: 'POST', body: JSON.stringify({ pin }) });
+  }
+
   resetUserPassword(id: string, password: string) {
     return this.request<any>(`/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) });
   }

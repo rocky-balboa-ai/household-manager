@@ -53,6 +53,23 @@ export class UsersService {
     return { success: true };
   }
 
+  async setPin(id: string, pin: string) {
+    // Validate PIN format: 4-6 digits only
+    if (!/^\d{4,6}$/.test(pin)) {
+      throw new BadRequestException('PIN must be 4-6 digits');
+    }
+    const user = await this.db.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const hashedPin = await bcrypt.hash(pin, 10);
+    await this.db.user.update({
+      where: { id },
+      data: { pin: hashedPin, pinSetAt: new Date() },
+    });
+    return { success: true };
+  }
+
   async resetPassword(id: string, newPassword: string) {
     if (newPassword.length < 6) {
       throw new BadRequestException('Password must be at least 6 characters');

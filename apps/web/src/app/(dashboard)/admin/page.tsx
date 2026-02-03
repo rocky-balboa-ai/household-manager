@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'next/navigation';
-import { Users, Settings, Plus, Trash2, Key, RefreshCw, X, Pencil } from 'lucide-react';
+import { Users, Settings, Plus, Trash2, Key, RefreshCw, X, Pencil, Lock } from 'lucide-react';
 
 const ROLES = ['ADMIN', 'MANAGER', 'DRIVER', 'NANNY', 'MAID'] as const;
 const LANGUAGES = [
@@ -37,6 +37,8 @@ export default function AdminPage() {
   const [showEditUser, setShowEditUser] = useState<User | null>(null);
   const [showResetPassword, setShowResetPassword] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showSetPin, setShowSetPin] = useState<string | null>(null);
+  const [newPin, setNewPin] = useState('');
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -111,6 +113,24 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       alert('Failed to reset PIN');
+    }
+  };
+
+  const handleSetPin = async () => {
+    if (!showSetPin) return;
+    // Validate PIN: 4-6 digits only
+    if (!/^\d{4,6}$/.test(newPin)) {
+      alert('PIN must be 4-6 digits (numbers only)');
+      return;
+    }
+    try {
+      await api.setUserPin(showSetPin, newPin);
+      setShowSetPin(null);
+      setNewPin('');
+      alert('PIN set successfully');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to set PIN');
     }
   };
 
@@ -318,6 +338,13 @@ export default function AdminPage() {
                             Reset PIN
                           </button>
                           <button
+                            onClick={() => setShowSetPin(u.id)}
+                            className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800"
+                          >
+                            <Lock className="w-4 h-4" />
+                            Set PIN
+                          </button>
+                          <button
                             onClick={() => setShowResetPassword(u.id)}
                             className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-800"
                           >
@@ -359,6 +386,40 @@ export default function AdminPage() {
                     </Button>
                     <Button className="flex-1" onClick={handleResetPassword}>
                       Reset Password
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Set PIN Modal */}
+            {showSetPin && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold mb-4">Set PIN</h3>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Enter 4-6 digit PIN"
+                    value={newPin}
+                    onChange={(e) => {
+                      // Only allow digits
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setNewPin(value);
+                    }}
+                    maxLength={6}
+                  />
+                  <p className="text-sm text-gray-500 mt-2">PIN must be 4-6 digits</p>
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="outline" className="flex-1" onClick={() => {
+                      setShowSetPin(null);
+                      setNewPin('');
+                    }}>
+                      Cancel
+                    </Button>
+                    <Button className="flex-1" onClick={handleSetPin}>
+                      Set PIN
                     </Button>
                   </div>
                 </div>
