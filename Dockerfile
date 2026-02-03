@@ -1,5 +1,5 @@
-# Use Debian-based image (has proper OpenSSL 1.1 support)
-FROM node:22-slim AS builder
+# Use Debian-based image (has proper OpenSSL 1.1 support) - v2
+FROM node:22.13-slim AS builder
 
 # Install pnpm and OpenSSL
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -26,7 +26,7 @@ RUN cd packages/database && npx prisma generate
 RUN pnpm --filter api build
 
 # Production stage - also Debian-based
-FROM node:22-slim AS runner
+FROM node:22.13-slim AS runner
 
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
