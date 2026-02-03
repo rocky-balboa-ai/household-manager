@@ -39,4 +39,6 @@ RUN cd packages/database && npx prisma generate
 WORKDIR /app/apps/api
 EXPOSE 4000
 ENV PORT=4000
-CMD ["node", "dist/main.js"]
+
+# Run prisma db push (schema sync) before starting server
+CMD cd /app/packages/database && npx prisma db push --accept-data-loss && cd /app/apps/api && node dist/main.js
