@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BottomNav } from '@/components/navigation/bottom-nav';
 import { Sidebar } from '@/components/navigation/sidebar';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore, useHasHydrated } from '@/stores/auth';
 import { socketClient } from '@/lib/socket';
 
 export default function DashboardLayout({
@@ -14,15 +14,21 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const hasHydrated = useHasHydrated();
   const user = useAuthStore((s) => s.user);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on client before checking auth
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    // Only redirect after hydration is complete
-    if (hasHydrated && !isAuthenticated) {
+    // Only redirect after hydration is complete on client
+    if (isClient && hasHydrated && !isAuthenticated) {
       router.push('/login');
     }
-  }, [hasHydrated, isAuthenticated, router]);
+  }, [isClient, hasHydrated, isAuthenticated, router]);
 
   // Connect to WebSocket when authenticated
   useEffect(() => {
@@ -35,8 +41,8 @@ export default function DashboardLayout({
     };
   }, [isAuthenticated, user]);
 
-  // Show loading state while hydrating
-  if (!hasHydrated) {
+  // Show loading state while hydrating (client-side only)
+  if (!isClient || !hasHydrated) {
     return (
       <div className="min-h-screen bg-warm-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>

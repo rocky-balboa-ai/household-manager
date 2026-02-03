@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore, useHasHydrated } from '@/stores/auth';
 import { api } from '@/lib/api';
 
 interface StaffMember {
@@ -25,7 +25,7 @@ export default function StaffLoginPage() {
   const router = useRouter();
   const loginWithPin = useAuthStore((s) => s.loginWithPin);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const hasHydrated = useHasHydrated();
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {

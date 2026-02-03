@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore, useHasHydrated } from '@/stores/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const hasHydrated = useHasHydrated();
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {

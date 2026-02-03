@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { api } from '@/lib/api';
 import { socketClient } from '@/lib/socket';
+import { useEffect, useState } from 'react';
 
 interface User {
   id: string;
@@ -16,8 +17,6 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  hasHydrated: boolean;
-  setHasHydrated: (state: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   loginWithPin: (data: { userId?: string; email?: string; pin: string }) => Promise<void>;
   logout: () => void;
@@ -30,11 +29,6 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      hasHydrated: false,
-
-      setHasHydrated: (state: boolean) => {
-        set({ hasHydrated: state });
-      },
 
       login: async (email: string, password: string) => {
         const { access_token, user } = await api.login(email, password);
@@ -65,25 +59,56 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => {
+        // Return a no-op storage for SSR
+        if (typeof window === 'undefined') {
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
+        return localStorage;
+      }),
       partialize: (state) => ({
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state, error) => {
-        if (error) {
-          console.error('Auth hydration error:', error);
-          return;
-        }
+      onRehydrateStorage: () => (state) => {
+        // Restore token to API client when rehydrating
         if (state?.token) {
           api.setToken(state.token);
           if (state.user) {
             socketClient.connect(state.user.id, state.user.name);
           }
         }
-        // Mark hydration as complete
-        useAuthStore.getState().setHasHydrated(true);
       },
     }
   )
 );
+
+// Hook to wait for hydration
+export const useHasHydrated = () => {
+  const [hasHydrated, setHasHydrated] = useState(
+    // Check if we already have hydrated (handles hot reload)
+    useAuthStore.persist.hasHydrated()
+  );
+
+  useEffect(() => {
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+
+    // In case hydration already happened before effect ran
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+    }
+
+    return () => {
+      unsub();
+    };
+  }, []);
+
+  return hasHydrated;
+};
