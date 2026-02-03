@@ -3,8 +3,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsEmail() email?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
+  @ApiPropertyOptional({ enum: ['ADMIN', 'MANAGER', 'DRIVER', 'NANNY', 'MAID'] }) @IsOptional() @IsEnum(['ADMIN', 'MANAGER', 'DRIVER', 'NANNY', 'MAID']) role?: 'ADMIN' | 'MANAGER' | 'DRIVER' | 'NANNY' | 'MAID';
   @ApiPropertyOptional({ enum: ['en', 'ur', 'tl', 'sw', 'am'] }) @IsOptional() @IsString() language?: string;
+  @ApiPropertyOptional({ enum: ['en', 'ur', 'tl', 'sw', 'am'] }) @IsOptional() @IsString() altLanguage?: string;
 }
 
 export class UpdateLanguageDto {

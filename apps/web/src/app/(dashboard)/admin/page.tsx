@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'next/navigation';
-import { Users, Settings, Plus, Trash2, Key, RefreshCw, X } from 'lucide-react';
+import { Users, Settings, Plus, Trash2, Key, RefreshCw, X, Pencil } from 'lucide-react';
 
 const ROLES = ['ADMIN', 'MANAGER', 'DRIVER', 'NANNY', 'MAID'] as const;
 const LANGUAGES = [
@@ -34,6 +34,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'users' | 'config'>('users');
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState<User | null>(null);
   const [showResetPassword, setShowResetPassword] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [newUser, setNewUser] = useState({
@@ -42,7 +43,16 @@ export default function AdminPage() {
     password: '',
     role: 'MAID' as typeof ROLES[number],
     language: 'en',
+    altLanguage: '',
     phone: '',
+  });
+  const [editUser, setEditUser] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'MAID' as typeof ROLES[number],
+    language: 'en',
+    altLanguage: '',
   });
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
@@ -69,9 +79,12 @@ export default function AdminPage() {
   const handleCreateUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.password) return;
     try {
-      await api.createUser(newUser);
+      await api.createUser({
+        ...newUser,
+        altLanguage: newUser.altLanguage || undefined,
+      });
       setShowAddUser(false);
-      setNewUser({ name: '', email: '', password: '', role: 'MAID', language: 'en', phone: '' });
+      setNewUser({ name: '', email: '', password: '', role: 'MAID', language: 'en', altLanguage: '', phone: '' });
       loadUsers();
     } catch (err) {
       console.error(err);
@@ -114,6 +127,41 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       alert('Failed to reset password');
+    }
+  };
+
+  const openEditUser = (u: User) => {
+    setEditUser({
+      name: u.name,
+      email: u.email,
+      phone: u.phone || '',
+      role: u.role as typeof ROLES[number],
+      language: u.language,
+      altLanguage: u.altLanguage || '',
+    });
+    setShowEditUser(u);
+  };
+
+  const handleEditUser = async () => {
+    if (!showEditUser || !editUser.name || !editUser.email) {
+      alert('Name and email are required');
+      return;
+    }
+    try {
+      await api.updateUser(showEditUser.id, {
+        name: editUser.name,
+        email: editUser.email,
+        phone: editUser.phone || undefined,
+        role: editUser.role,
+        language: editUser.language,
+        altLanguage: editUser.altLanguage || undefined,
+      });
+      setShowEditUser(null);
+      loadUsers();
+      alert('User updated successfully');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to update user');
     }
   };
 
@@ -208,6 +256,16 @@ export default function AdminPage() {
                       <option key={lang.value} value={lang.value}>{lang.label}</option>
                     ))}
                   </select>
+                  <select
+                    className="px-3 py-2 rounded-lg border border-gray-300"
+                    value={newUser.altLanguage}
+                    onChange={(e) => setNewUser({ ...newUser, altLanguage: e.target.value })}
+                  >
+                    <option value="">Alt Language (optional)</option>
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang.value} value={lang.value}>{lang.label}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" onClick={() => setShowAddUser(false)}>Cancel</Button>
@@ -242,31 +300,40 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {u.role !== 'ADMIN' && (
-                      <div className="flex gap-2 mt-4 pt-3 border-t">
-                        <button
-                          onClick={() => handleResetPin(u.id)}
-                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                          Reset PIN
-                        </button>
-                        <button
-                          onClick={() => setShowResetPassword(u.id)}
-                          className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-800"
-                        >
-                          <Key className="w-4 h-4" />
-                          Reset Password
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(u.id)}
-                          className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 ml-auto"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
+                      <button
+                        onClick={() => openEditUser(u)}
+                        className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit
+                      </button>
+                      {u.role !== 'ADMIN' && (
+                        <>
+                          <button
+                            onClick={() => handleResetPin(u.id)}
+                            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Reset PIN
+                          </button>
+                          <button
+                            onClick={() => setShowResetPassword(u.id)}
+                            className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-800"
+                          >
+                            <Key className="w-4 h-4" />
+                            Reset Password
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(u.id)}
+                            className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 ml-auto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -292,6 +359,96 @@ export default function AdminPage() {
                     </Button>
                     <Button className="flex-1" onClick={handleResetPassword}>
                       Reset Password
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Edit User Modal */}
+            {showEditUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Edit User</h3>
+                    <button onClick={() => setShowEditUser(null)}>
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                      <Input
+                        placeholder="Name"
+                        value={editUser.name}
+                        onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <Input
+                        type="email"
+                        placeholder="Email"
+                        value={editUser.email}
+                        onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <Input
+                        placeholder="Phone (optional)"
+                        value={editUser.phone}
+                        onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                      <select
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300"
+                        value={editUser.role}
+                        onChange={(e) => setEditUser({ ...editUser, role: e.target.value as typeof ROLES[number] })}
+                        disabled={showEditUser.role === 'ADMIN'}
+                      >
+                        {ROLES.map((role) => (
+                          <option key={role} value={role}>{role}</option>
+                        ))}
+                      </select>
+                      {showEditUser.role === 'ADMIN' && (
+                        <p className="text-xs text-gray-500 mt-1">Admin role cannot be changed</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Primary Language</label>
+                      <select
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300"
+                        value={editUser.language}
+                        onChange={(e) => setEditUser({ ...editUser, language: e.target.value })}
+                      >
+                        {LANGUAGES.map((lang) => (
+                          <option key={lang.value} value={lang.value}>{lang.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Language</label>
+                      <select
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300"
+                        value={editUser.altLanguage}
+                        onChange={(e) => setEditUser({ ...editUser, altLanguage: e.target.value })}
+                      >
+                        <option value="">None</option>
+                        {LANGUAGES.map((lang) => (
+                          <option key={lang.value} value={lang.value}>{lang.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-6">
+                    <Button variant="outline" className="flex-1" onClick={() => setShowEditUser(null)}>
+                      Cancel
+                    </Button>
+                    <Button className="flex-1" onClick={handleEditUser}>
+                      Save Changes
                     </Button>
                   </div>
                 </div>
