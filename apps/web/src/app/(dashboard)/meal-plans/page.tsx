@@ -219,6 +219,12 @@ export default function MealPlansPage() {
                           type="text"
                           value={editing.description}
                           onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSaveMeal();
+                            }
+                          }}
                           placeholder="What's for this meal?"
                           className="flex-1 px-2 py-1 rounded border text-sm bg-white"
                           autoFocus

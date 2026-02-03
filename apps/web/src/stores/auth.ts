@@ -16,6 +16,8 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   loginWithPin: (data: { userId?: string; email?: string; pin: string }) => Promise<void>;
   logout: () => void;
@@ -28,6 +30,11 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      hasHydrated: false,
+
+      setHasHydrated: (state: boolean) => {
+        set({ hasHydrated: state });
+      },
 
       login: async (email: string, password: string) => {
         const { access_token, user } = await api.login(email, password);
@@ -58,13 +65,24 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      onRehydrateStorage: () => (state) => {
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Auth hydration error:', error);
+          return;
+        }
         if (state?.token) {
           api.setToken(state.token);
           if (state.user) {
             socketClient.connect(state.user.id, state.user.name);
           }
         }
+        // Mark hydration as complete
+        useAuthStore.getState().setHasHydrated(true);
       },
     }
   )

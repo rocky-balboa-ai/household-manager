@@ -87,15 +87,41 @@ export default function InventoryPage() {
     loadItems();
 
     const handleInventoryUpdated = (updatedItem: InventoryItem) => {
-      if (updatedItem.category === category) {
-        loadItems();
-      }
+      // Update the specific item in state instead of reloading everything
+      // This preserves the seamless UX from optimistic updates
+      setItems(currentItems => {
+        const existingIndex = currentItems.findIndex(i => i.id === updatedItem.id);
+        
+        if (updatedItem.category === category) {
+          if (existingIndex >= 0) {
+            // Update existing item in place
+            return currentItems.map(item =>
+              item.id === updatedItem.id ? updatedItem : item
+            );
+          } else {
+            // New item in this category - add it
+            return [...currentItems, updatedItem];
+          }
+        } else {
+          // Item moved to different category - remove from current view
+          if (existingIndex >= 0) {
+            return currentItems.filter(item => item.id !== updatedItem.id);
+          }
+        }
+        return currentItems;
+      });
+    };
+
+    const handleInventoryDeleted = (deletedId: string) => {
+      setItems(currentItems => currentItems.filter(item => item.id !== deletedId));
     };
 
     socketClient.on('inventory:updated', handleInventoryUpdated);
+    socketClient.on('inventory:deleted', handleInventoryDeleted);
 
     return () => {
       socketClient.off('inventory:updated', handleInventoryUpdated);
+      socketClient.off('inventory:deleted', handleInventoryDeleted);
     };
   }, [category, loadItems]);
 

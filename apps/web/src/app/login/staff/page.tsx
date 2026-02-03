@@ -24,6 +24,15 @@ export default function StaffLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const loginWithPin = useAuthStore((s) => s.loginWithPin);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (hasHydrated && isAuthenticated) {
+      router.push('/');
+    }
+  }, [hasHydrated, isAuthenticated, router]);
 
   useEffect(() => {
     api.getStaffList().then(setStaff).catch(console.error);
