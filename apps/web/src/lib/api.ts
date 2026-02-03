@@ -126,6 +126,10 @@ class ApiClient {
     return this.request<any>(`/inventory/${id}/adjust`, { method: 'POST', body: JSON.stringify({ amount }) });
   }
 
+  deleteInventoryItem(id: string) {
+    return this.request<any>(`/inventory/${id}`, { method: 'DELETE' });
+  }
+
   // Frozen Meals
   getFrozenMeals() {
     return this.request<any[]>('/frozen-meals');
