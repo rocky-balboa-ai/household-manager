@@ -183,7 +183,9 @@ export default function ShoppingPage() {
 
   const handleUpdateQuantity = async (itemId: string, delta: number) => {
     if (!activeList) return;
-    const item = activeList.items?.find((i) => i.id === itemId);
+    // Use items from lists state (not activeList which can be stale)
+    const currentItems = lists.find((l) => l.id === activeList.id)?.items;
+    const item = currentItems?.find((i) => i.id === itemId);
     if (!item) return;
     const newQty = Math.max(1, item.quantity + delta);
     const previousLists = [...lists];
