@@ -5,8 +5,8 @@ import { Header } from '@/components/navigation/header';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
+import { ChevronLeft, ChevronRight, Plus, X, Home } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths, startOfDay } from 'date-fns';
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 const MEAL_COLORS: Record<string, string> = {
@@ -28,8 +28,11 @@ interface MealPlan {
 export default function MealPlansPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  // Default to today's date when page loads
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => startOfDay(new Date()));
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ mealType: string; description: string } | null>(null);
   const user = useAuthStore((s) => s.user);
   const canEdit = user?.role === 'ADMIN' || user?.role === 'MANAGER';
@@ -54,6 +57,8 @@ export default function MealPlansPage() {
 
   const handleSaveMeal = async () => {
     if (!selectedDate || !editing) return;
+    setError(null);
+    setSaving(true);
     try {
       await api.saveMealPlan({
         date: format(selectedDate, 'yyyy-MM-dd'),
@@ -61,9 +66,12 @@ export default function MealPlansPage() {
         description: editing.description,
       });
       setEditing(null);
-      loadMealPlans();
-    } catch (err) {
-      console.error(err);
+      await loadMealPlans();
+    } catch (err: any) {
+      console.error('Failed to save meal plan:', err);
+      setError(err.message || 'Failed to save meal plan');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -90,9 +98,25 @@ export default function MealPlansPage() {
 
   return (
     <>
-      <Header title="Meal Plans" />
+      <Header title="Household Meal Plans" />
 
       <div className="space-y-4 pt-2">
+        {/* Household-level notice */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm">
+          <Home className="w-4 h-4 flex-shrink-0" />
+          <span>Meal plans are for the entire household — all family members share the same meals.</span>
+        </div>
+
+        {/* Error display */}
+        {error && (
+          <div className="flex items-center justify-between gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Month Navigation */}
         <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 rounded-full hover:bg-gray-100">
@@ -199,7 +223,9 @@ export default function MealPlansPage() {
                           className="flex-1 px-2 py-1 rounded border text-sm bg-white"
                           autoFocus
                         />
-                        <Button size="sm" onClick={handleSaveMeal}>Save</Button>
+                        <Button size="sm" onClick={handleSaveMeal} disabled={saving}>
+                          {saving ? 'Saving...' : 'Save'}
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
                       </div>
                     ) : meal ? (
