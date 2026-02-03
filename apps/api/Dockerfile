@@ -11,7 +11,7 @@ RUN pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl openssl1.1-compat libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages ./packages
@@ -23,10 +23,17 @@ RUN pnpm --filter api build
 # Run
 FROM base AS runner
 ENV NODE_ENV=production
+
+# Install OpenSSL 1.1 compat for Prisma runtime
+RUN apk add --no-cache openssl1.1-compat libc6-compat
+
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages ./packages
+
+# Re-generate Prisma client in runner to get correct binaries
+RUN cd packages/database && npx prisma generate
 
 WORKDIR /app/apps/api
 EXPOSE 4000
