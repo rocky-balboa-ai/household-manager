@@ -27,7 +27,7 @@ RUN pnpm --filter api build
 # Production stage
 FROM node:22-alpine AS production
 
-# Install OpenSSL and libc6-compat for Prisma
+# Install OpenSSL and libc6-compat for Prisma (v2)
 RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
