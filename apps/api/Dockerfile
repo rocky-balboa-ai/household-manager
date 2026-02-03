@@ -17,7 +17,7 @@ COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages ./packages
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api ./apps/api
-RUN pnpm --filter database db:generate
+RUN cd packages/database && npx prisma generate
 RUN pnpm --filter api build
 
 # Run
