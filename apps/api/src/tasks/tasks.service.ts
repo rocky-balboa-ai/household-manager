@@ -80,7 +80,7 @@ export class TasksService {
   async complete(id: string, dto: CompleteTaskDto, userId: string) {
     const task = await this.db.task.findUnique({ where: { id }, include: { assignments: true } });
     if (!task) throw new NotFoundException('Task not found');
-    const isAssigned = task.assignments.some((a) => a.userId === userId);
+    const isAssigned = task.assignments.some((a: { userId: string }) => a.userId === userId);
     if (!isAssigned) throw new ForbiddenException('You are not assigned to this task');
     const completed = await this.db.task.update({
       where: { id },

@@ -52,6 +52,6 @@ export class InventoryService {
 
   async getLowStock() {
     const items = await this.db.inventoryItem.findMany({ where: { lowThreshold: { not: null } } });
-    return items.filter(item => item.lowThreshold && item.quantity <= item.lowThreshold);
+    return items.filter((item: { lowThreshold: number | null; quantity: number }) => item.lowThreshold && item.quantity <= item.lowThreshold);
   }
 }

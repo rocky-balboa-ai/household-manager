@@ -11,11 +11,13 @@ RUN pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages ./packages
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api ./apps/api
+RUN pnpm --filter database db:generate
 RUN pnpm --filter api build
 
 # Run
