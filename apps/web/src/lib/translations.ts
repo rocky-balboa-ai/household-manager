@@ -15,6 +15,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.schedule': 'Schedule',
     'nav.staff': 'Staff',
     'nav.dayOff': 'Day Off',
+    'nav.mealPlans': 'Meal Plans',
+    'nav.admin': 'Admin',
 
     // Dashboard
     'dashboard.welcome': 'Welcome',
@@ -119,6 +121,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.schedule': 'شیڈول',
     'nav.staff': 'عملہ',
     'nav.dayOff': 'چھٹی',
+    'nav.mealPlans': 'کھانے کی منصوبہ بندی',
+    'nav.admin': 'ایڈمن',
 
     // Dashboard
     'dashboard.welcome': 'خوش آمدید',
@@ -189,6 +193,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.schedule': 'Iskedyul',
     'nav.staff': 'Staff',
     'nav.dayOff': 'Day Off',
+    'nav.mealPlans': 'Mga Plano sa Pagkain',
+    'nav.admin': 'Admin',
 
     // Dashboard
     'dashboard.welcome': 'Maligayang pagdating',
@@ -250,6 +256,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.schedule': 'Ratiba',
     'nav.staff': 'Wafanyakazi',
     'nav.dayOff': 'Siku ya Kupumzika',
+    'nav.mealPlans': 'Mipango ya Chakula',
+    'nav.admin': 'Msimamizi',
 
     // Dashboard
     'dashboard.welcome': 'Karibu',
@@ -311,6 +319,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.schedule': 'መርሐግብር',
     'nav.staff': 'ሰራተኞች',
     'nav.dayOff': 'እረፍት',
+    'nav.mealPlans': 'የምግብ ዕቅዶች',
+    'nav.admin': 'አስተዳዳሪ',
 
     // Dashboard
     'dashboard.welcome': 'እንኳን ደህና መጡ',
