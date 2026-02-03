@@ -1,7 +1,8 @@
-FROM node:22-alpine AS base
+# Use Debian-based image (has proper OpenSSL 1.1 support)
+FROM node:22-slim AS base
 
 # Install pnpm and OpenSSL
-RUN apk add --no-cache openssl openssl-dev libc6-compat
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
@@ -24,11 +25,10 @@ RUN cd packages/database && npx prisma generate
 # Build the API
 RUN pnpm --filter api build
 
-# Production stage
-FROM node:22-alpine AS production
+# Production stage - also Debian-based
+FROM node:22-slim AS production
 
-# Install OpenSSL and libc6-compat for Prisma (v2)
-RUN apk add --no-cache openssl libc6-compat
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -38,9 +38,6 @@ COPY --from=base /app/packages ./packages
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=base /app/apps/api/package.json ./apps/api/
-
-# Regenerate Prisma client in production to ensure correct binaries
-RUN cd packages/database && npx prisma generate
 
 ENV NODE_ENV=production
 EXPOSE 4000
