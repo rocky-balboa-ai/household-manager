@@ -18,8 +18,8 @@ RUN pnpm install --frozen-lockfile
 COPY packages/database ./packages/database
 COPY apps/api ./apps/api
 
-# Generate Prisma client
-RUN pnpm db:generate
+# Generate Prisma client with explicit binary targets for Alpine
+RUN cd packages/database && npx prisma generate
 
 # Build the API
 RUN pnpm --filter api build
