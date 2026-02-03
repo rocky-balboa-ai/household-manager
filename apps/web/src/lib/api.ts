@@ -156,6 +156,10 @@ class ApiClient {
     return this.request<any>(`/shopping-lists/${listId}/items/${itemId}`, { method: 'PATCH', body: JSON.stringify(data) });
   }
 
+  deleteShoppingItem(listId: string, itemId: string) {
+    return this.request<any>(`/shopping-lists/${listId}/items/${itemId}`, { method: 'DELETE' });
+  }
+
   completeShoppingList(id: string) {
     return this.request<any>(`/shopping-lists/${id}/complete`, { method: 'POST' });
   }
